@@ -1,43 +1,20 @@
+@Library ('My-Shared-Libraries')_
 pipeline {
-    agent {
-        label 'windows-latest'
-    }
-    
-    environment {
-        solution = '**/*.sln'
-        buildPlatform = 'Any CPU'
-        buildConfiguration = 'Release'
-    }
-    
+  agent any
     stages {
-        stage('NuGet Tool Installer') {
-            steps {
-                bat 'nuget.exe'
-            }
+      stage('Build'){
+        steps{
+          script{
+            build()
+          }
         }
-        
-        stage('NuGet Restore') {
-            steps {
-                bat "nuget restore ${solution}"
-            }
+      }
+      stage('Deploy'){
+        steps{
+          script{
+            deploy()
+          }
         }
-        
-        stage('Build') {
-            steps {
-                bat "msbuild ${solution} /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation=\"${env.BUILD_ARTIFACTSTAGINGDIRECTORY}\" /p:Platform=\"${buildPlatform}\" /p:Configuration=\"${buildConfiguration}\""
-            }
-        }
-        
-        stage('Test') {
-            steps {
-                bat "vstest.console.exe ${solution} /Platform:\"${buildPlatform}\" /Configuration:\"${buildConfiguration}\""
-            }
-        }
-    }
-    
-    post {
-        always {
-            cleanWs()
-        }
+      }
     }
 }
